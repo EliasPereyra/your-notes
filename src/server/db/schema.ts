@@ -13,16 +13,17 @@ import { index, int, sqliteTableCreator, text } from "drizzle-orm/sqlite-core";
 export const createTable = sqliteTableCreator((name) => `your-notes_${name}`);
 
 export const posts = createTable(
-  "post",
+  "note",
   {
     id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
-    name: text("name", { length: 256 }),
+    title: text("title", { length: 256 }),
+    description: text("desc"),
     createdAt: int("created_at", { mode: "timestamp" })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
     updatedAt: int("updatedAt", { mode: "timestamp" }),
   },
   (example) => ({
-    nameIndex: index("name_idx").on(example.name),
-  })
+    nameIndex: index("name_idx").on(example.title),
+  }),
 );
