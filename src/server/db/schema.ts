@@ -33,3 +33,10 @@ export const topic = createTable("topic", {
   title: text("title", { length: 40 }),
   // add the user and notes relations
 });
+
+export author = createTable("author", { 
+  id: int("id", { mode: "number"}).primaryKey({ autoIncrement: true}),
+  name: text("name", { length: 40}).notNull(),
+  email: text("name", { length: 40, mode: "text"}).notNull(),
+  image: text("name"),
+})
