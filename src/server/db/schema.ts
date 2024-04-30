@@ -12,7 +12,7 @@ import { index, int, sqliteTableCreator, text } from "drizzle-orm/sqlite-core";
  */
 export const createTable = sqliteTableCreator((name) => `your-notes_${name}`);
 
-export const posts = createTable(
+export const notes = createTable(
   "note",
   {
     id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
@@ -27,3 +27,9 @@ export const posts = createTable(
     nameIndex: index("name_idx").on(example.title),
   }),
 );
+
+export const topic = createTable("topic", {
+  id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+  title: text("title", { length: 40 }),
+  // add the user and notes relations
+});
