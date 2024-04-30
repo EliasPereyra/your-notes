@@ -12,36 +12,41 @@ import { index, int, sqliteTableCreator, text } from "drizzle-orm/sqlite-core";
  */
 export const createTable = sqliteTableCreator((name) => `your-notes_${name}`);
 
-export const notes = createTable(
-  "note",
-  {
-    id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
-    title: text("title", { length: 256 }),
-    description: text("desc"),
-    createdAt: int("created_at", { mode: "timestamp" })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: int("updatedAt", { mode: "timestamp" }),
-  },
-  (example) => ({
-    nameIndex: index("name_idx").on(example.title),
-  }),
-);
+// Tables ----
+
+export const notes = createTable("note", {
+  id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+  title: text("title", { length: 256 }),
+  description: text("desc"),
+  createdAt: int("created_at", { mode: "timestamp" })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: int("updatedAt", { mode: "timestamp" }),
+  topicId: int("topicId")
+    .notNull()
+    .references(() => topics.id),
+});
 
 export const topics = createTable("topic", {
   id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
   title: text("title", { length: 40 }),
-  // add the user and notes relations
+  userId: int("userId")
+    .notNull()
+    .references(() => users.id),
+  createdAt: int("created_at", { mode: "timestamp" })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: int("updatedAt", { mode: "timestamp" }),
 });
 
-export const authors = createTable("author", {
+export const users = createTable("user", {
   id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
   name: text("name", { length: 40 }).notNull(),
   email: text("name", { length: 40, mode: "text" }).notNull(),
   image: text("name"),
 });
 
-const accounts = createTable("account", {
+export const accounts = createTable("account", {
   id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
   userId: text("userId"),
   type: text("type"),
@@ -57,15 +62,33 @@ const accounts = createTable("account", {
   session_state: text("sessionState"),
 });
 
-const session = createTable("session", {
+export const sessions = createTable("session", {
   id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
   sessionToken: text("sessionToken"),
   userId: text("userId"),
   expires: int("expires", { mode: "timestamp" }),
 });
 
-const verificationToken = createTable("verificationToken", {
+export const verificationTokens = createTable("verificationToken", {
   id: text("id"),
   token: text("token").unique(),
   expires: int("expires", { mode: "timestamp" }),
 });
+
+// Relations ----
+
+const topicsRelations = relations(topics, ({ many }) => ({
+  notes: many(notes),
+}));
+
+const usersTopicsRelations = relations(topics, ({ many }) => ({
+  topics: many(topics),
+}));
+
+const usersSessionsRelations = relations(sessions, ({ many }) => ({
+  sessions: many(sessions),
+}));
+
+const usersAccountsRelations = relations(accounts, ({ many }) => ({
+  accounts: many(accounts),
+}));
