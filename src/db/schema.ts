@@ -2,7 +2,12 @@
 // https://orm.drizzle.team/docs/sql-schema-declaration
 
 import { relations, sql } from "drizzle-orm";
-import { index, int, sqliteTableCreator, text } from "drizzle-orm/sqlite-core";
+import {
+  int,
+  primaryKey,
+  sqliteTableCreator,
+  text,
+} from "drizzle-orm/sqlite-core";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -40,40 +45,58 @@ export const topics = createTable("topic", {
 });
 
 export const users = createTable("user", {
-  id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+  id: text("id")
+    .primaryKey()
+    .$default(() => crypto.randomUUID()),
   name: text("name", { length: 40 }).notNull(),
   email: text("name", { length: 40, mode: "text" }).notNull(),
   image: text("name"),
 });
 
-export const accounts = createTable("account", {
-  id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
-  userId: text("userId"),
-  type: text("type"),
-  provider: text(""),
-  providerAccountId: text("providerAccountId"),
-  refresh_token: text("refreshToken"),
-  refresh_token_expires_in: int("refreshTokenExpiresIn"),
-  access_token: text("accessToken"),
-  expires_at: int("expiresAt", { mode: "timestamp" }),
-  token_type: text("tokenType"),
-  scope: text("scope"),
-  id_token: text("idToken"),
-  session_state: text("sessionState"),
-});
+export const accounts = createTable(
+  "account",
+  {
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    provider: text("provider").notNull(),
+    providerAccountId: text("providerAccountId"),
+    refresh_token: text("refreshToken"),
+    refresh_token_expires_in: int("refreshTokenExpiresIn"),
+    access_token: text("accessToken"),
+    expires_at: int("expiresAt", { mode: "timestamp" }),
+    token_type: text("tokenType"),
+    scope: text("scope"),
+    id_token: text("idToken"),
+    session_state: text("sessionState"),
+  },
+  (account) => ({
+    compoundKey: primaryKey({
+      columns: [account.provider, account.providerAccountId],
+    }),
+  }),
+);
 
 export const sessions = createTable("session", {
-  id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
-  sessionToken: text("sessionToken"),
-  userId: text("userId"),
-  expires: int("expires", { mode: "timestamp" }),
+  sessionToken: text("sessionToken").primaryKey(),
+  userId: text("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  expires: int("expires", { mode: "timestamp" }).notNull(),
 });
 
-export const verificationTokens = createTable("verificationToken", {
-  id: text("id"),
-  token: text("token").unique(),
-  expires: int("expires", { mode: "timestamp" }),
-});
+export const verificationTokens = createTable(
+  "verificationToken",
+  {
+    identifier: text("identifier").notNull(),
+    token: text("token").notNull().unique(),
+    expires: int("expires", { mode: "timestamp" }).notNull(),
+  },
+  (vt) => ({
+    compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
+  }),
+);
 
 // Relations ----
 
