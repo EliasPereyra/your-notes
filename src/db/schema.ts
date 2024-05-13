@@ -20,7 +20,9 @@ export const createTable = sqliteTableCreator((name) => `your-notes_${name}`);
 // Tables ----
 
 export const notes = createTable("note", {
-  id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+  id: text("id")
+    .primaryKey()
+    .$default(() => crypto.randomUUID()),
   title: text("title", { length: 256 }),
   description: text("desc"),
   createdAt: int("created_at", { mode: "timestamp" })
@@ -33,7 +35,9 @@ export const notes = createTable("note", {
 });
 
 export const topics = createTable("topic", {
-  id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+  id: text("id")
+    .primaryKey()
+    .$default(() => crypto.randomUUID()),
   title: text("title", { length: 40 }),
   userId: int("userId")
     .notNull()
